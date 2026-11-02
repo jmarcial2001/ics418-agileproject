@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <title>Ka Lama Kiosk</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+
+<body>
+    <header>
+        <h1 id="title"></h1>
+        <div id="clock"></div>
+    </header>
+    <main id="view"></main>
+    <nav id="tabs"></nav>
+
+    <!-- QR code lib (kiosk has internet). If offline, the page falls back to showing the link text. -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="data/data.js"></script>
+    <script src="js/app.js"></script>
+</body>
+
+</html>
