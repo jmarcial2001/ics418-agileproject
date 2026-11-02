@@ -1,0 +1,269 @@
+:root {
+    --bg: #f4f6f8;
+    --card: #ffffff;
+    --ink: #1b2a38;
+    --accent: #004f71;
+    /* UHMC teal-blue */
+    --accent-ink: #ffffff;
+    --muted: #6b7a88;
+    --route: #e4572e;
+}
+
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html,
+body {
+    margin: 0;
+    height: 100%;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    user-select: none;
+    -webkit-user-select: none;
+    overflow: hidden;
+    /* cursor: none;  <- turn this back on for the real kiosk */
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 28px 40px;
+    background: var(--accent);
+    color: var(--accent-ink);
+}
+
+header h1 {
+    margin: 0;
+    font-size: 44px;
+}
+
+#clock {
+    font-size: 36px;
+}
+
+main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 32px 40px;
+}
+
+h2 {
+    font-size: 40px;
+    margin: 0 0 20px;
+}
+
+nav {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    background: var(--card);
+    border-top: 3px solid #dde3e8;
+}
+
+nav button {
+    border: 0;
+    background: none;
+    padding: 22px 4px;
+    font-size: 26px;
+    color: var(--muted);
+}
+
+nav button .ico {
+    display: block;
+    font-size: 44px;
+}
+
+nav button.active {
+    color: var(--accent);
+    font-weight: 700;
+    background: #e3eef3;
+}
+
+.btn {
+    border: 0;
+    border-radius: 16px;
+    padding: 22px 34px;
+    font-size: 30px;
+    background: var(--accent);
+    color: var(--accent-ink);
+}
+
+.btn.alt {
+    background: #dde3e8;
+    color: var(--ink);
+}
+
+.btn.on {
+    background: var(--ink);
+    color: #fff;
+}
+
+.row {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+}
+
+.card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 24px 28px;
+    margin-bottom: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+}
+
+.card .main {
+    font-size: 32px;
+    font-weight: 600;
+}
+
+.card .sub {
+    font-size: 26px;
+    color: var(--muted);
+    margin-top: 4px;
+}
+
+input[type=search] {
+    width: 100%;
+    font-size: 34px;
+    padding: 20px 24px;
+    border-radius: 16px;
+    border: 3px solid #c9d2da;
+    margin-bottom: 20px;
+    user-select: text;
+}
+
+/* map */
+.mapwrap {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 12px;
+}
+
+svg.map {
+    width: 100%;
+    height: auto;
+    display: block;
+}
+
+svg.map .room {
+    fill: rgba(0, 79, 113, 0.07);
+    stroke: rgba(0, 79, 113, 0.35);
+    stroke-width: 1.5;
+}
+
+svg.map .room.sel {
+    fill: rgba(255, 196, 0, 0.55);
+    stroke: #c98a00;
+    stroke-width: 3;
+}
+
+svg.map .rlabel {
+    fill: #12303f;
+    paint-order: stroke;
+    stroke: #fff;
+    stroke-width: 3px;
+    stroke-linejoin: round;
+    text-anchor: middle;
+    dominant-baseline: central;
+    font-weight: 700;
+    pointer-events: none;
+}
+
+svg.map .path {
+    fill: none;
+    stroke: var(--route);
+    stroke-width: 6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 14 10;
+    animation: dash 1s linear infinite;
+}
+
+svg.map .you {
+    fill: #0b6e4f;
+    stroke: #fff;
+    stroke-width: 3;
+}
+
+svg.map .youlabel {
+    fill: #0b6e4f;
+    paint-order: stroke;
+    stroke: #fff;
+    stroke-width: 4px;
+    stroke-linejoin: round;
+    font-size: 17px;
+    font-weight: 800;
+    text-anchor: middle;
+}
+
+@keyframes dash {
+    to {
+        stroke-dashoffset: -24;
+    }
+}
+
+.steps {
+    font-size: 30px;
+    margin: 20px 0;
+}
+
+.detail {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 20px 28px;
+    margin: 16px 0;
+    font-size: 28px;
+}
+
+.detail b {
+    font-size: 34px;
+}
+
+.detail .sub {
+    color: var(--muted);
+}
+
+/* QR */
+.qrbox {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    margin: 20px 0;
+}
+
+.qrbox .qr {
+    background: #fff;
+    padding: 20px;
+    border-radius: 16px;
+}
+
+.qrbox .url {
+    font-size: 24px;
+    color: var(--muted);
+    word-break: break-all;
+    text-align: center; 
+}
+
+/* live google map */
+.gmap {
+    width: 100%;
+    height: 680px;
+    border: 0;
+    border-radius: 18px;
+    margin-bottom: 20px;
+    background: #dde3e8;
+}
