@@ -1,0 +1,106 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ka Lama Admin Dashboard</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      color: #222;
+    }
+
+    header {
+      background: #123e70;
+      color: white;
+      padding: 25px;
+      text-align: center;
+    }
+
+    main {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px #00000015;
+      text-align: center;
+    }
+
+    .card h2 {
+      font-size: 20px;
+    }
+
+    button {
+      background: #123e70;
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>Ka Lama Admin Dashboard</h1>
+    <p>UH Maui College — Kiosk Management</p>
+  </header>
+
+  <main>
+    <h2>Welcome, Administrator</h2>
+    <p>Select an area to manage:</p>
+
+    <div class="dashboard">
+      <div class="card">
+        <h2>Room Directory</h2>
+        <p>Manage classrooms and offices.</p>
+        
+<button type="button" onclick="window.location.href='rooms.html'">
+    Manage Rooms
+  </button>
+  
+      </div>
+
+      <div class="card">
+        <h2>Announcements</h2>
+        <p>Manage campus announcements.</p>
+        <button type="button" onclick="window.location.href='announcements.html'">
+            Manage Announcements
+          </button>
+      </div>
+
+      <div class="card">
+        <h2>Events</h2>
+        <p>Manage upcoming events.</p>
+        <button type="button" onclick="window.location.href='events.html'">
+            Manage Events
+          </button>
+      </div>
+
+      <div class="card">
+        <h2>Program Information</h2>
+        <p>Manage business program details.</p>
+        <button type="button" onclick="window.location.href='programs.html'">
+            Manage Programs
+          </button>
+      </div>
+    </div>
+  </main>
+
+</body>
+</html>

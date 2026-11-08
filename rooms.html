@@ -1,0 +1,450 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Rooms - Ka Lama</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      color: #222;
+    }
+
+    header {
+      background: #123e70;
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin-bottom: 10px;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 35px auto;
+      padding: 20px;
+    }
+
+    .panel {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px #00000015;
+      margin-bottom: 30px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    input, select {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+
+    button, .back {
+      display: inline-block;
+      background: #123e70;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    button:hover, .back:hover {
+      background: #0b2b50;
+    }
+
+    .back {
+      margin-bottom: 25px;
+    }
+
+    .room-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 12px;
+    }
+
+    .room-item p {
+      margin: 8px 0;
+    }
+
+    .room-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .delete-btn {
+      background: #b42318;
+    }
+
+    .delete-btn:hover {
+      background: #8d1c13;
+    }
+
+    .cancel-btn {
+      background: #666;
+      margin-left: 10px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .message {
+      color: #146c43;
+      font-weight: bold;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Manage Room Directory</h1>
+    <p>Ka Lama - UH Maui College</p>
+  </header>
+
+  <main>
+
+    <a class="back" href="admin.html">
+      Back to Dashboard
+    </a>
+
+    <h2 id="form-title">Add Room Information</h2>
+
+    <div class="panel">
+
+      <form id="room-form">
+
+        <label for="room">Room Number</label>
+        <input
+          id="room"
+          type="text"
+          placeholder="Example: 207"
+          required
+        >
+
+        <label for="floor">Floor</label>
+        <select id="floor">
+          <option value="1">First Floor</option>
+          <option value="2">Second Floor</option>
+        </select>
+
+        <label for="type">Room Type</label>
+        <select id="type">
+          <option value="Classroom">Classroom</option>
+          <option value="Office">Office</option>
+          <option value="Other">Other</option>
+        </select>
+
+        <label for="description">Description</label>
+        <input
+          id="description"
+          type="text"
+          placeholder="Example: Business Classroom"
+        >
+
+        <button id="save-btn" type="submit">
+          Save Room
+        </button>
+
+        <button
+          id="cancel-btn"
+          class="cancel-btn hidden"
+          type="button"
+          onclick="cancelEdit()"
+        >
+          Cancel
+        </button>
+
+        <p id="message" class="message" role="status"></p>
+
+      </form>
+
+    </div>
+
+    <h2>Saved Rooms</h2>
+
+    <div class="panel">
+      <div id="room-list"></div>
+    </div>
+
+  </main>
+
+  <script>
+
+    const storageKey = "kaLamaRooms";
+    let editingIndex = null;
+
+    const form = document.getElementById("room-form");
+    const roomInput = document.getElementById("room");
+    const floorInput = document.getElementById("floor");
+    const typeInput = document.getElementById("type");
+    const descriptionInput =
+      document.getElementById("description");
+
+    function getRooms() {
+      try {
+        const saved = JSON.parse(
+          localStorage.getItem(storageKey) || "[]"
+        );
+
+        return Array.isArray(saved) ? saved : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function saveRooms(rooms) {
+      try {
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify(rooms)
+        );
+        return true;
+      } catch (error) {
+        alert("Unable to save rooms in this browser.");
+        return false;
+      }
+    }
+
+    function showMessage(text) {
+      document.getElementById("message").textContent = text;
+    }
+
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+      saveRoom();
+    });
+
+    function saveRoom() {
+
+      const room = roomInput.value.trim();
+      const floor = floorInput.value;
+      const type = typeInput.value;
+      const description = descriptionInput.value.trim();
+
+      if (!room) {
+        alert("Please enter a room number.");
+        return;
+      }
+
+      const rooms = getRooms();
+
+      const duplicate = rooms.some(function(item, index) {
+        return item.room.toLowerCase() ===
+          room.toLowerCase() &&
+          index !== editingIndex;
+      });
+
+      if (duplicate) {
+        alert("This room number already exists.");
+        return;
+      }
+
+      const newRoom = {
+        room: room,
+        floor: floor,
+        type: type,
+        description: description
+      };
+
+      const wasEditing = editingIndex !== null;
+
+      if (wasEditing) {
+        rooms[editingIndex] = newRoom;
+      } else {
+        rooms.push(newRoom);
+      }
+
+      if (!saveRooms(rooms)) {
+        return;
+      }
+
+      cancelEdit();
+      displayRooms();
+
+      showMessage(
+        wasEditing
+          ? "Room updated successfully!"
+          : "Room saved successfully!"
+      );
+    }
+
+    function displayRooms() {
+
+      const rooms = getRooms();
+      const list = document.getElementById("room-list");
+
+      list.replaceChildren();
+
+      if (rooms.length === 0) {
+        const empty = document.createElement("p");
+        empty.textContent = "No rooms have been added yet.";
+        list.appendChild(empty);
+        return;
+      }
+
+      rooms.forEach(function(item, index) {
+
+        const card = document.createElement("div");
+        card.className = "room-item";
+
+        const heading = document.createElement("h3");
+        heading.textContent = "Room " + item.room;
+
+        const floor = document.createElement("p");
+        floor.textContent = "Floor: " + item.floor;
+
+        const type = document.createElement("p");
+        type.textContent = "Type: " + item.type;
+
+        const description = document.createElement("p");
+        description.textContent =
+          "Description: " + (item.description || "None");
+
+        const actions = document.createElement("div");
+        actions.className = "room-actions";
+
+        const editButton = document.createElement("button");
+        editButton.type = "button";
+        editButton.textContent = "Edit";
+        editButton.onclick = function() {
+          editRoom(index);
+        };
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.textContent = "Delete";
+        deleteButton.className = "delete-btn";
+        deleteButton.onclick = function() {
+          deleteRoom(index);
+        };
+
+        actions.append(editButton, deleteButton);
+
+        card.append(
+          heading,
+          floor,
+          type,
+          description,
+          actions
+        );
+
+        list.appendChild(card);
+      });
+    }
+
+    function editRoom(index) {
+
+      const rooms = getRooms();
+      const item = rooms[index];
+
+      if (!item) {
+        return;
+      }
+
+      editingIndex = index;
+
+      roomInput.value = item.room;
+      floorInput.value = item.floor;
+      typeInput.value = item.type;
+      descriptionInput.value = item.description;
+
+      document.getElementById("form-title").textContent =
+        "Edit Room Information";
+
+      document.getElementById("save-btn").textContent =
+        "Update Room";
+
+      document.getElementById("cancel-btn")
+        .classList.remove("hidden");
+
+      showMessage("");
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
+      roomInput.focus();
+    }
+
+    function deleteRoom(index) {
+
+      const rooms = getRooms();
+      const item = rooms[index];
+
+      if (!item) {
+        return;
+      }
+
+      const confirmed = confirm(
+        "Are you sure you want to delete Room " +
+        item.room + "?"
+      );
+
+      if (!confirmed) {
+        return;
+      }
+
+      rooms.splice(index, 1);
+
+      if (!saveRooms(rooms)) {
+        return;
+      }
+
+      cancelEdit();
+      displayRooms();
+
+      showMessage("Room deleted successfully.");
+    }
+
+    function cancelEdit() {
+
+      editingIndex = null;
+
+      form.reset();
+
+      document.getElementById("form-title").textContent =
+        "Add Room Information";
+
+      document.getElementById("save-btn").textContent =
+        "Save Room";
+
+      document.getElementById("cancel-btn")
+        .classList.add("hidden");
+
+      showMessage("");
+    }
+
+    displayRooms();
+
+  </script>
+
+</body>
+</html>

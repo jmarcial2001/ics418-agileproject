@@ -1,0 +1,422 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Programs - Ka Lama</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      color: #222;
+    }
+
+    header {
+      background: #123e70;
+      color: white;
+      padding: 30px 20px;
+      text-align: center;
+    }
+
+    main {
+      max-width: 1000px;
+      margin: 35px auto;
+      padding: 20px;
+    }
+
+    .panel {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 2px 8px #00000015;
+      margin-bottom: 30px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    input, textarea {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin-bottom: 20px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+      font-family: Arial, sans-serif;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    button, .back {
+      display: inline-block;
+      background: #123e70;
+      color: white;
+      padding: 12px 20px;
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      cursor: pointer;
+      font-size: 15px;
+    }
+
+    button:hover, .back:hover {
+      background: #0b2b50;
+    }
+
+    .back {
+      margin-bottom: 25px;
+    }
+
+    .program-item {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 12px;
+    }
+
+    .program-item h3 {
+      margin-top: 0;
+    }
+
+    .program-item p {
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
+
+    .program-item a {
+      overflow-wrap: anywhere;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .delete-btn {
+      background: #b42318;
+    }
+
+    .delete-btn:hover {
+      background: #8d1c13;
+    }
+
+    .cancel-btn {
+      background: #666;
+      margin-left: 10px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    .message {
+      color: #146c43;
+      font-weight: bold;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>Manage Programs</h1>
+    <p>Ka Lama - UH Maui College</p>
+  </header>
+
+  <main>
+
+    <a class="back" href="admin.html">
+      Back to Dashboard
+    </a>
+
+    <h2 id="form-title">Add Program</h2>
+
+    <div class="panel">
+      <form id="program-form">
+
+        <label for="name">Program Name</label>
+        <input
+          id="name"
+          type="text"
+          placeholder="Example: Applied Business and Information Technology"
+          required
+        >
+
+        <label for="degree">Degree or Certificate</label>
+        <input
+          id="degree"
+          type="text"
+          placeholder="Example: Bachelor of Applied Science"
+          required
+        >
+
+        <label for="description">Program Description</label>
+        <textarea
+          id="description"
+          placeholder="Enter information about the program"
+          required
+        ></textarea>
+
+        <label for="link">Program Website (Optional)</label>
+        <input
+          id="link"
+          type="url"
+          placeholder="https://example.edu/program"
+        >
+
+        <button id="save-btn" type="submit">
+          Save Program
+        </button>
+
+        <button
+          id="cancel-btn"
+          class="cancel-btn hidden"
+          type="button"
+        >
+          Cancel
+        </button>
+
+        <p id="message" class="message" role="status"></p>
+
+      </form>
+    </div>
+
+    <h2>Saved Programs</h2>
+
+    <div class="panel">
+      <div id="program-list"></div>
+    </div>
+
+  </main>
+
+  <script>
+    const storageKey = "kaLamaPrograms";
+    let editingIndex = null;
+
+    const form = document.getElementById("program-form");
+    const nameInput = document.getElementById("name");
+    const degreeInput = document.getElementById("degree");
+    const descriptionInput =
+      document.getElementById("description");
+    const linkInput = document.getElementById("link");
+    const message = document.getElementById("message");
+
+    function getPrograms() {
+      try {
+        const saved = JSON.parse(
+          localStorage.getItem(storageKey) || "[]"
+        );
+        return Array.isArray(saved) ? saved : [];
+      } catch (error) {
+        return [];
+      }
+    }
+
+    function savePrograms(items) {
+      try {
+        localStorage.setItem(
+          storageKey,
+          JSON.stringify(items)
+        );
+        return true;
+      } catch (error) {
+        alert("Unable to save programs in this browser.");
+        return false;
+      }
+    }
+
+    function resetForm() {
+      editingIndex = null;
+      form.reset();
+
+      document.getElementById("form-title").textContent =
+        "Add Program";
+      document.getElementById("save-btn").textContent =
+        "Save Program";
+      document.getElementById("cancel-btn")
+        .classList.add("hidden");
+    }
+
+    form.addEventListener("submit", function(event) {
+      event.preventDefault();
+
+      const name = nameInput.value.trim();
+      const degree = degreeInput.value.trim();
+      const description = descriptionInput.value.trim();
+      const link = linkInput.value.trim();
+
+      if (!name || !degree || !description) {
+        alert("Please complete the required fields.");
+        return;
+      }
+
+      const programs = getPrograms();
+
+      const program = {
+        name: name,
+        degree: degree,
+        description: description,
+        link: link
+      };
+
+      const wasEditing = editingIndex !== null;
+
+      if (wasEditing) {
+        programs[editingIndex] = program;
+      } else {
+        programs.push(program);
+      }
+
+      if (!savePrograms(programs)) {
+        return;
+      }
+
+      resetForm();
+      displayPrograms();
+
+      message.textContent = wasEditing
+        ? "Program updated successfully!"
+        : "Program saved successfully!";
+    });
+
+    function displayPrograms() {
+      const programs = getPrograms();
+      const list = document.getElementById("program-list");
+
+      list.replaceChildren();
+
+      if (programs.length === 0) {
+        const empty = document.createElement("p");
+        empty.textContent = "No programs have been added yet.";
+        list.appendChild(empty);
+        return;
+      }
+
+      programs.forEach(function(item, index) {
+        const card = document.createElement("div");
+        card.className = "program-item";
+
+        const heading = document.createElement("h3");
+        heading.textContent = item.name;
+
+        const degree = document.createElement("p");
+        degree.textContent = "Degree: " + item.degree;
+
+        const description = document.createElement("p");
+        description.textContent = item.description;
+
+        card.append(heading, degree, description);
+
+        if (item.link) {
+          const link = document.createElement("a");
+          link.textContent = "Visit Program Website";
+          link.href = item.link;
+          link.target = "_blank";
+          link.rel = "noopener noreferrer";
+          card.appendChild(link);
+        }
+
+        const actions = document.createElement("div");
+        actions.className = "actions";
+
+        const editButton = document.createElement("button");
+        editButton.type = "button";
+        editButton.textContent = "Edit";
+        editButton.onclick = function() {
+          editProgram(index);
+        };
+
+        const deleteButton = document.createElement("button");
+        deleteButton.type = "button";
+        deleteButton.textContent = "Delete";
+        deleteButton.className = "delete-btn";
+        deleteButton.onclick = function() {
+          deleteProgram(index);
+        };
+
+        actions.append(editButton, deleteButton);
+        card.appendChild(actions);
+        list.appendChild(card);
+      });
+    }
+
+    function editProgram(index) {
+      const item = getPrograms()[index];
+
+      if (!item) {
+        return;
+      }
+
+      editingIndex = index;
+      nameInput.value = item.name;
+      degreeInput.value = item.degree;
+      descriptionInput.value = item.description;
+      linkInput.value = item.link || "";
+
+      document.getElementById("form-title").textContent =
+        "Edit Program";
+      document.getElementById("save-btn").textContent =
+        "Update Program";
+      document.getElementById("cancel-btn")
+        .classList.remove("hidden");
+
+      message.textContent = "";
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
+      nameInput.focus();
+    }
+
+    function deleteProgram(index) {
+      const programs = getPrograms();
+      const item = programs[index];
+
+      if (!item) {
+        return;
+      }
+
+      if (!confirm("Delete program: " + item.name + "?")) {
+        return;
+      }
+
+      programs.splice(index, 1);
+
+      if (!savePrograms(programs)) {
+        return;
+      }
+
+      resetForm();
+      displayPrograms();
+
+      message.textContent = "Program deleted successfully.";
+    }
+
+    document.getElementById("cancel-btn")
+      .addEventListener("click", function() {
+        resetForm();
+        message.textContent = "";
+      });
+
+    displayPrograms();
+  </script>
+
+</body>
+</html>
