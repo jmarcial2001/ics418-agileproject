@@ -102,12 +102,47 @@ function makeQRs() {
     });
 }
 
+let onlineClockOffsetMs = 0;
+const hawaiiClockFormat = new Intl.DateTimeFormat("en-US", {
+    weekday: "short", hour: "numeric", minute: "2-digit",
+    timeZone: "Pacific/Honolulu", timeZoneName: "short",
+});
+const splashClockFormat = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric", minute: "2-digit", timeZone: "Pacific/Honolulu",
+});
+
 function tick() {
-    const time = new Date().toLocaleTimeString("en-US", {
-        hour: "numeric", minute: "2-digit", timeZone: "Pacific/Honolulu"
-    });
-    $("#clock").textContent = time;
-    $("#splash-clock").textContent = time;
+    const now = new Date(Date.now() + onlineClockOffsetMs);
+    $("#clock").textContent = hawaiiClockFormat.format(now);
+    $("#splash-clock").textContent = splashClockFormat.format(now);
+}
+
+async function syncOnlineClock() {
+    const requestStartedAt = Date.now();
+    const url = new URL(location.href);
+    url.searchParams.set("_clock_sync", String(requestStartedAt));
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 5000);
+
+    try {
+        const response = await fetch(url, {
+            method: "HEAD",
+            cache: "no-store",
+            signal: controller.signal,
+        });
+        if (!response.ok) throw new Error(`Clock sync returned HTTP ${response.status}`);
+
+        const serverTime = Date.parse(response.headers.get("Date") || "");
+        if (!Number.isFinite(serverTime)) throw new Error("Clock sync response had no valid Date header");
+
+        const receivedAt = Date.now();
+        onlineClockOffsetMs = serverTime + (receivedAt - requestStartedAt) / 2 - receivedAt;
+        tick();
+    } catch (error) {
+        console.warn("Online clock sync failed; continuing with the device clock.", error);
+    } finally {
+        clearTimeout(timeout);
+    }
 }
 
 function hideIdleWarning() {
@@ -146,6 +181,7 @@ function resetIdle() {
 function showSplash() {
     clearIdleTimers();
     hideIdleWarning();
+    document.body.classList.remove("kiosk-active");
     state.route = null;
     state.selected = null;
     state.floor = kioskFloor();
@@ -234,15 +270,22 @@ function renderDirectory(el) {
     el.innerHTML = `<h2>Directory</h2>
     <input type="search" id="q" placeholder="Search name, title, or room…">
     <div id="list"></div>`;
+    const formatPhone = (phone) => {
+        let digits = phone.replace(/\D/g, "");
+        if (digits.length === 11 && digits.startsWith("1")) digits = digits.slice(1);
+        if (digits.length === 7) digits = `808${digits}`;
+        if (digits.length !== 10) return phone;
+        return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+    };
     const draw = (q = "") => {
         q = q.toLowerCase();
         $("#list").innerHTML = K.directory
             .filter((p) => `${p.name} ${p.title} ${p.room}`.toLowerCase().includes(q))
             .sort((a, b) => a.name.localeCompare(b.name))
-            .map((p) => `<div class="card">
-          <div><div class="main">${p.name}</div>
-          <div class="sub">${p.title} · Room ${p.room}</div>
-          ${p.phone || p.email ? `<div class="sub">${[p.phone, p.email].filter(Boolean).join(" · ")}</div>` : ""}</div>
+            .map((p) => `<div class="card directory-card">
+          <div class="directory-info"><div class="main">${p.name}</div>
+          <div class="directory-meta"><span class="sub">${p.title}</span><span class="directory-room">Room ${p.room}</span></div>
+          ${p.phone || p.email ? `<div class="sub directory-contact">${[p.phone && formatPhone(p.phone), p.email].filter(Boolean).join(" · ")}</div>` : ""}</div>
           <button class="btn" data-route="${p.room}">Show me</button></div>`).join("")
             || `<div class="sub">No matches.</div>`;
     };
@@ -326,9 +369,12 @@ function renderCampus(el) {
   }
 
 // ---------- boot ----------
-$("#title").textContent = K.config.buildingName;
+$("#building-name").textContent = `${K.config.buildingName} Building`;
 buildTabs();
-tick(); setInterval(tick, 30000);
+tick();
+setInterval(tick, 30000);
+syncOnlineClock();
+setInterval(syncOnlineClock, 15 * 60 * 1000);
 resetIdle();
 go("map");
 
@@ -343,6 +389,7 @@ function enterKiosk() {
     setTimeout(() => {
         splash.hidden = true;
         document.body.classList.remove("splash-active");
+        document.body.classList.add("kiosk-active");
         resetIdle();
     }, 850);
 }
