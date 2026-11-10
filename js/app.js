@@ -107,6 +107,10 @@ const hawaiiClockFormat = new Intl.DateTimeFormat("en-US", {
     weekday: "short", hour: "numeric", minute: "2-digit",
     timeZone: "Pacific/Honolulu", timeZoneName: "short",
 });
+const hawaiiTimePartsFormat = new Intl.DateTimeFormat("en-US", {
+    weekday: "short", hour: "2-digit", minute: "2-digit", second: "2-digit",
+    hourCycle: "h23", timeZone: "Pacific/Honolulu",
+});
 const splashClockFormat = new Intl.DateTimeFormat("en-US", {
     hour: "numeric", minute: "2-digit", timeZone: "Pacific/Honolulu",
 });
@@ -115,6 +119,57 @@ function tick() {
     const now = new Date(Date.now() + onlineClockOffsetMs);
     $("#clock").textContent = hawaiiClockFormat.format(now);
     $("#splash-clock").textContent = splashClockFormat.format(now);
+    renderClassStatus();
+}
+
+function renderClassStatus() {
+    const panel = $("#class-status");
+    if (!panel) return;
+
+    const parts = Object.fromEntries(hawaiiTimePartsFormat.formatToParts(new Date(Date.now() + onlineClockOffsetMs))
+        .filter((part) => part.type !== "literal")
+        .map((part) => [part.type, part.value]));
+    const day = { Sun: "Su", Mon: "M", Tue: "T", Wed: "W", Thu: "Th", Fri: "F", Sat: "Sa" }[parts.weekday];
+    const currentMinutes = Number(parts.hour) * 60 + Number(parts.minute) + Number(parts.second) / 60;
+    const parseMinutes = (time) => {
+        const [hour, minute] = time.split(":").map(Number);
+        return hour * 60 + minute;
+    };
+    const active = [];
+    const upcoming = [];
+
+    K.schedule.filter((course) => course.days.includes(day)).forEach((course) => {
+        const start = parseMinutes(course.start);
+        const end = parseMinutes(course.end);
+        if (start <= currentMinutes && currentMinutes < end) active.push(course);
+        else if (start > currentMinutes && start - currentMinutes <= 30) upcoming.push(course);
+    });
+
+    const formatMinutes = (minutes) => {
+        const hour = Math.floor(minutes / 60);
+        return `${((hour + 11) % 12) + 1}:${String(minutes % 60).padStart(2, "0")} ${hour < 12 ? "AM" : "PM"}`;
+    };
+    const rows = (courses, kind) => {
+        if (!courses.length) return `<p class="class-status-empty">${kind === "active" ? "No classes in session" : "Nothing starting soon"}</p>`;
+        return courses.slice(0, 6).map((course) => {
+            const start = parseMinutes(course.start);
+            const end = parseMinutes(course.end);
+            const detail = kind === "active"
+                ? `Until ${formatMinutes(end)}`
+                : `${formatMinutes(start)} · ${Math.ceil(start - currentMinutes)}m`;
+            return `<div class="class-status-item">
+                <strong>${course.course}</strong>
+                <small>Room ${course.room} · ${detail}</small>
+            </div>`;
+        }).join("") + (courses.length > 6 ? `<p class="class-status-more">+${courses.length - 6} more</p>` : "");
+    };
+
+    panel.innerHTML = `<section class="class-status-group">
+        <h3><span class="class-status-dot is-live"></span>In session</h3>${rows(active, "active")}
+    </section>
+    <section class="class-status-group is-upcoming">
+        <h3><span class="class-status-dot is-soon"></span>Starting soon</h3>${rows(upcoming, "upcoming")}
+    </section>`;
 }
 
 async function syncOnlineClock() {
@@ -232,10 +287,8 @@ function renderMap(el) {
     </div>` : "";
 
     el.innerHTML = `
-    <h2>Building Map</h2>
-    <div class="row">
-      <button class="btn ${state.floor === 1 ? "on" : "alt"}" data-floor="1">1st Floor</button>
-      <button class="btn ${state.floor === 2 ? "on" : "alt"}" data-floor="2">2nd Floor</button>
+    <div class="map-overview">
+      <div class="class-status-panel" id="class-status" aria-live="polite"></div>
     </div>
     <div class="mapwrap">
       <svg class="map" viewBox="0 0 ${f.w} ${f.h}">
@@ -252,10 +305,15 @@ function renderMap(el) {
           <text class="youlabel" x="${kiosk.x}" y="${kiosk.y + 32}">YOU ARE HERE</text>` : ""}
       </svg>
     </div>
+    <div class="row floor-controls">
+      <button class="btn ${state.floor === 1 ? "on" : "alt"}" data-floor="1">1st Floor</button>
+      <button class="btn ${state.floor === 2 ? "on" : "alt"}" data-floor="2">2nd Floor</button>
+    </div>
     ${detail}
     <div class="steps">${stepsText}</div>
     ${sel ? `<button class="btn" data-route="${sel.id}">How do I get here?</button>` : ""}`;
 
+    renderClassStatus();
     el.onclick = (e) => {
         const fl = e.target.closest("[data-floor]");
         if (fl) { state.floor = +fl.dataset.floor; return renderMap(el); }
@@ -299,9 +357,9 @@ function renderSchedule(el) {
     el.innerHTML = `<h2>Class Schedule</h2>
     <div class="row">${["M", "T", "W", "Th", "F"].map((d) =>
         `<button class="btn ${state.day === d ? "on" : "alt"}" data-day="${d}">${d}</button>`).join("")}</div>
-    ${items.map((c) => `<div class="card">
-        <div><div class="main">${c.course}${c.instructor ? " — " + c.instructor : ""}</div>
-        <div class="sub">${fmtTime(c.start)} – ${fmtTime(c.end)} · Room ${c.room}</div></div>
+    ${items.map((c) => `<div class="card schedule-card">
+        <div class="schedule-info"><div class="main">${c.course}${c.instructor ? ` <span class="schedule-instructor">— ${c.instructor}</span>` : ""}</div>
+        <div class="schedule-meta"><span class="sub">${fmtTime(c.start)} – ${fmtTime(c.end)}</span><span class="schedule-room">Room ${c.room}</span></div></div>
         <button class="btn" data-route="${c.room}">Show me</button></div>`).join("")
         || `<div class="sub">No classes in this building on that day.</div>`}`;
     el.onclick = (e) => {
@@ -385,11 +443,12 @@ let splashRotationTimer;
 function enterKiosk() {
     if (splash.hidden || splash.classList.contains("is-exiting")) return;
     clearInterval(splashRotationTimer);
+    document.body.classList.add("kiosk-active");
+    void splash.offsetWidth;
     splash.classList.add("is-exiting");
     setTimeout(() => {
         splash.hidden = true;
         document.body.classList.remove("splash-active");
-        document.body.classList.add("kiosk-active");
         resetIdle();
     }, 850);
 }
