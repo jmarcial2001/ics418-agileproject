@@ -1,3 +1,27 @@
+@font-face {
+    font-family: Gotham;
+    src: url("../fonts/Gotham-Book.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: Gotham;
+    src: url("../fonts/Gotham-Medium.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+}
+
+@font-face {
+    font-family: Gotham;
+    src: url("../fonts/Gotham-Bold.ttf") format("truetype");
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+}
+
 :root {
     --bg: #f4f6f8;
     --card: #ffffff;
@@ -20,11 +44,18 @@ body {
     height: 100%;
     background: var(--bg);
     color: var(--ink);
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    font-family: Gotham, "Gotham Sans", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     user-select: none;
     -webkit-user-select: none;
     overflow: hidden;
     /* cursor: none;  <- turn this back on for the real kiosk */
+}
+
+button,
+input,
+select,
+textarea {
+    font-family: inherit;
 }
 
 body {
@@ -266,4 +297,350 @@ svg.map .youlabel {
     border-radius: 18px;
     margin-bottom: 20px;
     background: #dde3e8;
+}
+
+body.splash-active {
+    overflow: hidden;
+}
+
+.splash-screen {
+    position: fixed;
+    z-index: 1000;
+    inset: 0;
+    display: grid;
+    overflow: hidden;
+    color: #fff;
+    background: #07394f;
+    isolation: isolate;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity .8s ease, visibility .8s ease;
+}
+
+.splash-screen.is-exiting {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.splash-screen[hidden] {
+    display: none;
+}
+
+.splash-slides,
+.splash-shade {
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+}
+
+.splash-slide {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    opacity: 0;
+    filter: blur(14px);
+    transform: scale(1.015);
+    transition: opacity 3.2s cubic-bezier(.4, 0, .2, 1), transform 7s ease, filter 1.5s ease;
+}
+
+.splash-slide.is-active {
+    opacity: 1;
+    filter: blur(14px);
+    transform: scale(1.1);
+}
+
+.splash-shade {
+    background:
+        linear-gradient(90deg, rgba(3, 35, 51, .80) 0%, rgba(3, 45, 63, .53) 47%, rgba(4, 38, 54, .12) 100%),
+        linear-gradient(0deg, rgba(3, 32, 45, .60) 0%, transparent 35%, rgba(3, 32, 45, .12) 100%);
+}
+
+.splash-clock {
+    position: absolute;
+    top: 48px;
+    right: 56px;
+    z-index: 1;
+    color: #fff;
+    font-size: 30px;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, .55);
+}
+
+.splash-content {
+    width: min(100% - 120px, 950px);
+    align-self: center;
+    justify-self: center;
+    padding: 70px 0 90px;
+    text-shadow: 0 2px 24px rgba(0, 0, 0, .22);
+}
+
+.splash-brand {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 2px;
+}
+
+.splash-brand-mark {
+    width: 96px;
+    height: 92px;
+    flex: 0 0 auto;
+    padding: 5px;
+    border-radius: 14px;
+    background: #fff;
+    object-fit: contain;
+}
+
+.splash-kicker {
+    margin: 74px 0 20px;
+    color: #d7e8ef;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 3px;
+}
+
+.splash-content h1 {
+    margin: 0;
+    font-size: clamp(72px, 9vw, 124px);
+    font-weight: 700;
+    letter-spacing: -4px;
+    line-height: .98;
+}
+
+.splash-intro {
+    margin: 26px 0 34px;
+    font-size: 30px;
+    line-height: 1.4;
+}
+
+.splash-enter {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: min(560px, 100%);
+    min-height: 112px;
+    padding: 12px;
+    border: 2px solid rgba(255, 255, 255, .9);
+    border-radius: 60px;
+    color: #07394f;
+    background: #f2b36f;
+    box-shadow: 0 12px 38px rgba(0, 0, 0, .3), 0 0 0 6px rgba(255, 255, 255, .2);
+    font-size: 30px;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+    user-select: none;
+    animation: enter-button-pulse 3.2s ease-in-out 1s infinite;
+}
+
+.splash-enter::after {
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 18px 8px rgba(242, 179, 111, .55);
+    content: "";
+    opacity: 0;
+    pointer-events: none;
+    animation: enter-button-glow 3.2s ease-in-out 1s infinite;
+}
+
+.splash-enter-label {
+    position: relative;
+    z-index: 1;
+    pointer-events: none;
+    letter-spacing: .5px;
+}
+
+.splash-enter:active {
+    transform: scale(.985);
+}
+
+.splash-enter:focus-visible {
+    outline: 4px solid #fff;
+    outline-offset: 6px;
+}
+
+.splash-caption {
+    position: absolute;
+    right: 48px;
+    bottom: 38px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-shadow: 0 2px 12px rgba(0, 0, 0, .55);
+}
+
+.idle-warning {
+    position: fixed;
+    z-index: 1100;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 48px;
+    background: rgba(3, 32, 45, .72);
+}
+
+.idle-warning[hidden] {
+    display: none;
+}
+
+.idle-warning-card {
+    width: min(100%, 760px);
+    padding: 64px;
+    border-radius: 30px;
+    color: var(--ink);
+    background: var(--card);
+    box-shadow: 0 24px 80px rgba(0, 0, 0, .28);
+    text-align: center;
+}
+
+.idle-warning-kicker {
+    color: var(--accent);
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.idle-warning-card h2 {
+    margin: 22px 0 16px;
+    font-size: 54px;
+    letter-spacing: -1.5px;
+}
+
+.idle-warning-card p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 26px;
+    line-height: 1.45;
+}
+
+.idle-warning-card p strong {
+    color: var(--accent);
+}
+
+.idle-stay-button {
+    min-width: 420px;
+    min-height: 100px;
+    margin-top: 36px;
+    padding: 16px 30px;
+    border: 0;
+    border-radius: 20px;
+    color: #fff;
+    background: var(--accent);
+    font-size: 30px;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+}
+
+@keyframes enter-button-pulse {
+    0%, 72%, 100% { transform: scale(1); }
+    82% { transform: scale(1.015); }
+    92% { transform: scale(1); }
+}
+
+@keyframes enter-button-glow {
+    0%, 72%, 100% { opacity: 0; }
+    82% { opacity: .8; }
+}
+
+@media (max-width: 720px) {
+    .splash-content {
+        width: calc(100% - 48px);
+        padding: 52px 0 70px;
+    }
+
+    .splash-brand {
+        gap: 10px;
+        font-size: 11px;
+        letter-spacing: 1.2px;
+    }
+
+    .splash-brand-mark {
+        width: 68px;
+        height: 66px;
+    }
+
+    .splash-clock {
+        top: 24px;
+        right: 24px;
+        font-size: 20px;
+    }
+
+    .splash-kicker {
+        margin: 38px 0 16px;
+        font-size: 15px;
+        letter-spacing: 2px;
+    }
+
+    .splash-content h1 {
+        font-size: clamp(48px, 11vw, 76px);
+        letter-spacing: -2.5px;
+    }
+
+    .splash-intro {
+        margin: 16px 0 22px;
+        font-size: 19px;
+    }
+
+    .splash-enter {
+        width: 100%;
+        min-height: 96px;
+        padding: 10px;
+        font-size: 24px;
+    }
+
+    .splash-caption {
+        right: 20px;
+        bottom: 20px;
+        font-size: 10px;
+        letter-spacing: 1px;
+    }
+
+    .idle-warning {
+        padding: 24px;
+    }
+
+    .idle-warning-card {
+        padding: 36px 24px;
+        border-radius: 24px;
+    }
+
+    .idle-warning-kicker {
+        font-size: 14px;
+    }
+
+    .idle-warning-card h2 {
+        margin: 16px 0 12px;
+        font-size: 32px;
+        letter-spacing: -.5px;
+    }
+
+    .idle-warning-card p {
+        font-size: 18px;
+    }
+
+    .idle-stay-button {
+        min-width: 0;
+        width: 100%;
+        min-height: 76px;
+        margin-top: 24px;
+        font-size: 21px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .splash-enter,
+    .splash-enter::after {
+        animation: none;
+    }
 }

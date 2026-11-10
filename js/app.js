@@ -1,5 +1,8 @@
 const K = window.KIOSK;
 const $ = (s) => document.querySelector(s);
+const splash = $("#splash");
+const idleWarning = $("#idle-warning");
+const idleCountdown = $("#idle-countdown");
 // Two kiosks: the 2nd-floor screen opens index.html?kiosk=2
 const kioskParam = new URLSearchParams(location.search).get("kiosk");
 if (kioskParam && K.config.kioskNodes[kioskParam]) K.config.kioskNodeId = K.config.kioskNodes[kioskParam];
@@ -8,7 +11,6 @@ const TABS = [
     { id: "map", label: "Map", icon: "🗺️", render: renderMap },
     { id: "directory", label: "Directory", icon: "👥", render: renderDirectory },
     { id: "schedule", label: "Classes", icon: "📅", render: renderSchedule },
-    { id: "cafeteria", label: "Cafeteria", icon: "🍽️", render: renderCafeteria },
     { id: "events", label: "Events", icon: "🎉", render: renderEvents },
     { id: "campus", label: "Campus", icon: "🌴", render: renderCampus },
 ];
@@ -22,6 +24,11 @@ const state = {
     route: null,          // array of nodes
     day: DAYS[new Date().getDay()],
 };
+const tabHistory = [];
+const IDLE_WARNING_MS = 15_000;
+let idleTimer;
+let idleWarningTimer;
+let idleCountdownTimer;
 
 // ---------- data helpers ----------
 const roomById = (id) => K.rooms.find((r) => r.id === id);
@@ -63,7 +70,8 @@ function showRoute(roomId) {
 }
 
 // ---------- shell ----------
-function go(tab) {
+function go(tab, addToHistory = true) {
+    if (addToHistory && state.tab !== tab) tabHistory.push(state.tab);
     state.tab = tab;
     const t = TABS.find((x) => x.id === tab);
     t.render($("#view"));
@@ -74,11 +82,13 @@ function go(tab) {
 }
 
 function buildTabs() {
-    $("#tabs").innerHTML = TABS.map((t) =>
+    $("#tabs").innerHTML = `<button type="button" data-action="back" aria-label="Go back">
+        <span class="ico">←</span>Back</button>` + TABS.map((t) =>
         `<button data-tab="${t.id}"><span class="ico">${t.icon}</span>${t.label}</button>`).join("");
     $("#tabs").addEventListener("click", (e) => {
         const b = e.target.closest("button");
         if (!b) return;
+        if (b.dataset.action === "back") return goBack();
         if (b.dataset.tab === "map") { state.route = null; state.selected = null; }
         go(b.dataset.tab);
     });
@@ -93,20 +103,67 @@ function makeQRs() {
 }
 
 function tick() {
-    $("#clock").textContent = new Date().toLocaleTimeString("en-US", {
+    const time = new Date().toLocaleTimeString("en-US", {
         hour: "numeric", minute: "2-digit", timeZone: "Pacific/Honolulu"
     });
+    $("#clock").textContent = time;
+    $("#splash-clock").textContent = time;
 }
 
-// reset to home after idle
-let idleTimer;
-function resetIdle() {
+function hideIdleWarning() {
+    idleWarning.hidden = true;
+    idleWarning.setAttribute("aria-hidden", "true");
+}
+
+function clearIdleTimers() {
     clearTimeout(idleTimer);
-    idleTimer = setTimeout(() => {
-        state.route = null; state.selected = null; state.floor = kioskFloor();
-        state.day = DAYS[new Date().getDay()];
-        go("map");
-    }, K.config.idleSeconds * (state.tab === "campus" ? 3 : 1) * 1000);
+    clearTimeout(idleWarningTimer);
+    clearInterval(idleCountdownTimer);
+}
+
+function showIdleWarning() {
+    if (!splash.hidden) return;
+    idleWarning.hidden = false;
+    idleWarning.setAttribute("aria-hidden", "false");
+    idleCountdown.textContent = String(IDLE_WARNING_MS / 1000);
+    idleWarning.querySelector("#idle-stay").focus({ preventScroll: true });
+
+    const deadline = Date.now() + IDLE_WARNING_MS;
+    idleCountdownTimer = setInterval(() => {
+        idleCountdown.textContent = String(Math.max(0, Math.ceil((deadline - Date.now()) / 1000)));
+    }, 1000);
+    idleTimer = setTimeout(showSplash, IDLE_WARNING_MS);
+}
+
+function resetIdle() {
+    clearIdleTimers();
+    hideIdleWarning();
+    if (!splash.hidden) return;
+    const duration = K.config.idleSeconds * (state.tab === "campus" ? 3 : 1) * 1000;
+    idleWarningTimer = setTimeout(showIdleWarning, Math.max(0, duration - IDLE_WARNING_MS));
+}
+
+function showSplash() {
+    clearIdleTimers();
+    hideIdleWarning();
+    state.route = null;
+    state.selected = null;
+    state.floor = kioskFloor();
+    state.day = DAYS[new Date().getDay()];
+    tabHistory.length = 0;
+    splash.hidden = false;
+    splash.classList.remove("is-exiting");
+    document.body.classList.add("splash-active");
+    go("map", false);
+    startSplashRotation();
+}
+
+function goBack() {
+    if (state.tab === "map") {
+        showSplash();
+        return;
+    }
+    go(tabHistory.pop() || "map", false);
 }
 
 // ---------- views ----------
@@ -272,6 +329,41 @@ function renderCampus(el) {
 $("#title").textContent = K.config.buildingName;
 buildTabs();
 tick(); setInterval(tick, 30000);
-["pointerdown", "keydown"].forEach((ev) => document.addEventListener(ev, resetIdle, true));
 resetIdle();
 go("map");
+
+const splashSlides = [...splash.querySelectorAll(".splash-slide")];
+let activeSplashSlide = 0;
+let splashRotationTimer;
+
+function enterKiosk() {
+    if (splash.hidden || splash.classList.contains("is-exiting")) return;
+    clearInterval(splashRotationTimer);
+    splash.classList.add("is-exiting");
+    setTimeout(() => {
+        splash.hidden = true;
+        document.body.classList.remove("splash-active");
+        resetIdle();
+    }, 850);
+}
+
+$("#splash-enter").addEventListener("click", enterKiosk);
+
+function startSplashRotation() {
+    clearInterval(splashRotationTimer);
+    splashRotationTimer = setInterval(() => {
+        if (splash.hidden || splash.classList.contains("is-exiting")) return;
+        splashSlides[activeSplashSlide].classList.remove("is-active");
+        activeSplashSlide = (activeSplashSlide + 1) % splashSlides.length;
+        splashSlides[activeSplashSlide].classList.add("is-active");
+    }, 4000);
+}
+
+startSplashRotation();
+idleWarning.querySelector("#idle-stay").addEventListener("click", resetIdle);
+["pointerdown", "keydown", "touchstart"].forEach((eventName) => {
+    document.addEventListener(eventName, (event) => {
+        if (event.target instanceof Element && event.target.closest("#idle-warning")) return;
+        resetIdle();
+    }, { passive: true });
+});

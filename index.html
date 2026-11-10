@@ -8,13 +8,43 @@
     <link rel="stylesheet" href="css/styles.css">
 </head>
 
-<body>
+<body class="splash-active">
     <header>
         <h1 id="title"></h1>
         <div id="clock"></div>
     </header>
     <main id="view"></main>
     <nav id="tabs"></nav>
+
+    <section class="splash-screen" id="splash" role="dialog" aria-modal="true" aria-label="UHMC welcome">
+        <div class="splash-slides" aria-hidden="true">
+            <img class="splash-slide is-active" src="img/campus-02.jpg" alt="" fetchpriority="high">
+            <img class="splash-slide" src="img/campus-01.jpg" alt="">
+            <img class="splash-slide" src="img/campus-03.jpg" alt="">
+            <img class="splash-slide" src="img/campus-04.jpg" alt="">
+        </div>
+        <div class="splash-shade" aria-hidden="true"></div>
+        <time class="splash-clock" id="splash-clock" aria-label="Current time"></time>
+        <div class="splash-content">
+            <span class="splash-brand"><img class="splash-brand-mark" src="img/uhmc-logo.png" alt="University of Hawaiʻi Maui College logo"> UNIVERSITY OF HAWAIʻI · MAUI COLLEGE</span>
+            <p class="splash-kicker">E KOMO MAI</p>
+            <h1>Welcome to<br>Ka Lama Building</h1>
+            <p class="splash-intro">Find your way, explore your future, and discover what’s happening at UH Maui College.</p>
+            <button class="splash-enter" type="button" id="splash-enter" aria-label="Click to enter">
+                <span class="splash-enter-label">Click to enter</span>
+            </button>
+        </div>
+        <span class="splash-caption">UHMC · KAHULUI, MAUI</span>
+    </section>
+
+    <section class="idle-warning" id="idle-warning" role="dialog" aria-modal="true" aria-labelledby="idle-warning-title" aria-hidden="true" hidden>
+        <div class="idle-warning-card">
+            <span class="idle-warning-kicker">Campus kiosk</span>
+            <h2 id="idle-warning-title">Are you still there?</h2>
+            <p>For your privacy, this kiosk will return to the welcome screen in <strong id="idle-countdown">15</strong> seconds.</p>
+            <button class="idle-stay-button" type="button" id="idle-stay">Yes, keep browsing</button>
+        </div>
+    </section>
 
     <!-- QR code lib (kiosk has internet). If offline, the page falls back to showing the link text. -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
