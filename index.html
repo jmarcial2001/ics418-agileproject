@@ -11,6 +11,7 @@
 <body class="splash-active">
     <header>
         <div class="brand" aria-label="University of Hawaiʻi Maui College">
+            <img class="brand-mark" src="img/uhmc-logo.png" alt="">
             <span class="brand-copy">
                 <strong>UHMC</strong>
                 <span id="building-name">Ka Lama Building</span>
@@ -22,27 +23,43 @@
         </div>
     </header>
     <main id="view"></main>
-    <nav id="tabs"></nav>
 
     <section class="splash-screen" id="splash" role="dialog" aria-modal="true" aria-label="UHMC welcome">
-        <div class="splash-slides" aria-hidden="true">
-            <img class="splash-slide is-active" src="img/campus-02.jpg" alt="" fetchpriority="high">
-            <img class="splash-slide" src="img/campus-01.jpg" alt="">
-            <img class="splash-slide" src="img/campus-03.jpg" alt="">
-            <img class="splash-slide" src="img/campus-04.jpg" alt="">
-        </div>
-        <div class="splash-shade" aria-hidden="true"></div>
-        <time class="splash-clock" id="splash-clock" aria-label="Current time"></time>
         <div class="splash-content">
-            <span class="splash-brand"><img class="splash-brand-mark" src="img/uhmc-logo.png" alt="University of Hawaiʻi Maui College logo"> UNIVERSITY OF HAWAIʻI · MAUI COLLEGE</span>
-            <p class="splash-kicker">E KOMO MAI</p>
-            <h1>Welcome to<br>Ka Lama Building</h1>
-            <p class="splash-intro">Find your way, explore your future, and discover what’s happening at UH Maui College.</p>
-            <button class="splash-enter" type="button" id="splash-enter" aria-label="Click to enter">
-                <span class="splash-enter-label">Click to enter</span>
-            </button>
+            <div class="splash-brand" aria-label="University of Hawaiʻi Maui College">
+                <span class="splash-brand-mark"><img src="img/uhmc-logo.png" alt=""></span>
+                <span class="splash-brand-copy"><strong>UH Maui College</strong><span>Ka Lama Building</span></span>
+                <time class="splash-clock" id="splash-clock" aria-label="Current time"></time>
+            </div>
+            <div class="splash-main">
+                <div class="splash-copy">
+                    <p class="splash-kicker">E KOMO MAI <span aria-hidden="true">·</span> WELCOME</p>
+                    <h1>Your next stop<br>starts here.</h1>
+                    <p class="splash-intro">Find a room. Explore programs. Connect.</p>
+                </div>
+                <div class="splash-illustration" aria-hidden="true">
+                    <svg class="splash-student" viewBox="0 0 768 1205" aria-hidden="true" focusable="false">
+                        <defs>
+                            <mask id="splash-student-arm-clearance" maskUnits="userSpaceOnUse" x="0" y="0" width="768" height="1205">
+                                <rect width="768" height="1205" fill="#fff"></rect>
+                                <path d="M510 100 H680 V300 H644 C641 319 639 339 638 359 C637 379 633 398 622 413 C614 425 604 429 594 424 C581 419 570 412 560 403 C553 395 553 386 557 375 C562 360 560 345 552 328 C543 311 529 297 510 292 Z" fill="#000"></path>
+                            </mask>
+                        </defs>
+                        <image href="img/waving-college-student.png" width="768" height="1205" mask="url(#splash-student-arm-clearance)"></image>
+                        <image class="splash-student-forearm" href="img/waving-forearm.png" x="520" y="105" width="148" height="328"></image>
+                    </svg>
+                </div>
+            </div>
+            <div class="splash-actions">
+                <button class="splash-enter" type="button" id="splash-enter" aria-label="Tap to interact">
+                    <span class="splash-tap-icon-wrap" aria-hidden="true">
+                        <img class="splash-tap-icon" src="img/fingertip-tap-ripple.png" alt="">
+                    </span>
+                    <span class="splash-enter-label">Tap to interact</span>
+                </button>
+                <span class="splash-caption">KA LAMA <span aria-hidden="true">•</span> UH MAUI COLLEGE</span>
+            </div>
         </div>
-        <span class="splash-caption">UHMC · KAHULUI, MAUI</span>
     </section>
 
     <section class="idle-warning" id="idle-warning" role="dialog" aria-modal="true" aria-labelledby="idle-warning-title" aria-hidden="true" hidden>
