@@ -527,6 +527,7 @@ function renderEvents(el) {
 
 // ----- Campus: pick a building, scan the QR, get walking directions on your phone -----
 let campusDest = null;
+let campusQrOpen = false;
 const CAMPUS_MAP_MIN_ZOOM = 12;
 const CAMPUS_MAP_MAX_ZOOM = 20;
 let campusMapZoom = Math.min(CAMPUS_MAP_MAX_ZOOM, Math.max(
@@ -559,13 +560,29 @@ function renderCampus(el) {
             </div>
           </div>`
         : "";
-    el.innerHTML = `<h2>Campus Map</h2>${map}
-      <div class="sub" style="font-size:30px;margin-bottom:20px">Where do you want to go? Pick a building, then scan the code with your phone to get walking directions.</div>
-      <div class="row">${K.campusBuildings.map((b) =>
+    el.innerHTML = `<section class="campus-screen" aria-labelledby="campus-map-title">
+      <h2 id="campus-map-title">Campus Map</h2>
+      <p class="campus-instructions">Choose a location to open walking directions on your phone.</p>
+      <div class="campus-map-content">
+        ${map}
+        <aside class="campus-full-map">${qrBlock("Full campus map", K.config.campusMapUrl, "Scan to open the campus map.")}</aside>
+      </div>
+      <div class="campus-buildings" aria-label="Campus locations">${K.campusBuildings.map((b) =>
         `<button class="btn ${b.id === campusDest ? "on" : "alt"}" data-dest="${b.id}">${b.name}</button>`).join("")}</div>
-      ${sel ? qrBlock(`Directions to ${sel.name}`, mapsUrl(sel), "Scan with your phone camera. Walking directions open from wherever you are.") : ""}
-      ${qrBlock("Full campus map", K.config.campusMapUrl)}`;
+      ${campusQrOpen && sel ? `<div class="campus-qr-modal" role="dialog" aria-modal="true" aria-labelledby="campus-qr-title">
+        <div class="campus-qr-dialog">
+          <button type="button" class="campus-qr-close" data-campus-qr-close aria-label="Close directions QR code">×</button>
+          ${qrBlock(`Directions to ${sel.name}`, mapsUrl(sel), "Scan with your phone for walking directions.")}
+        </div>
+      </div>` : ""}
+    </section>`;
     el.onclick = (e) => {
+        if (e.target.closest("[data-campus-qr-close]") || e.target.matches(".campus-qr-modal")) {
+            campusQrOpen = false;
+            renderCampus(el);
+            makeQRs();
+            return;
+        }
         const zoom = e.target.closest("[data-map-zoom]");
         if (zoom) {
             campusMapZoom = Math.min(CAMPUS_MAP_MAX_ZOOM, Math.max(
@@ -577,7 +594,20 @@ function renderCampus(el) {
             return;
         }
         const b = e.target.closest("[data-dest]");
-        if (b) { campusDest = b.dataset.dest; renderSection("campus", el); makeQRs(); }
+        if (b) {
+            campusDest = b.dataset.dest;
+            campusQrOpen = true;
+            renderCampus(el);
+            makeQRs();
+            el.querySelector("[data-campus-qr-close]")?.focus();
+        }
+    };
+    el.onkeydown = (e) => {
+        if (e.key === "Escape" && campusQrOpen) {
+            campusQrOpen = false;
+            renderCampus(el);
+            makeQRs();
+        }
     };
   }
 
