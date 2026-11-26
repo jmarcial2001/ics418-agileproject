@@ -440,8 +440,6 @@ function renderMap(el) {
         }
         const r = e.target.closest("[data-room]");
         if (r) return selectRoom(r.dataset.room);
-        const g = e.target.closest("[data-route]");
-        if (g) showRoute(g.dataset.route);
     };
     el.onkeydown = (e) => {
         const room = e.target.closest("[data-room]");
