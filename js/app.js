@@ -66,7 +66,7 @@ function showRoute(roomId) {
     if (!room) return;
     state.selected = roomId;
     state.route = findRoute(K.config.kioskNodeId, room.node);
-    state.floor = kioskFloor();
+    state.floor = room.floor;
     go("map");
 }
 
