@@ -330,19 +330,16 @@ function renderMap(el) {
     if (state.route && sel && sel.floor === state.floor) pts.push([sel.x + sel.w / 2, sel.y + sel.h / 2]);
     const destination = pts.length ? pts[pts.length - 1] : null;
 
-    let stepsText;
-    if (state.route && sel) {
-        const crosses = sel.floor !== kioskFloor();
-        stepsText = `Route to <b>${sel.id}</b>` +
-            (crosses ? ` — take the stairs to floor ${sel.floor}, then follow the orange path.` : ` — follow the orange path.`);
-    } else if (sel) {
-        stepsText = "";
-    } else {
-        stepsText = "Tap a room to see details and directions.";
-    }
+    const directions = sel
+        ? state.route
+            ? (sel.floor !== kioskFloor()
+                ? `Take the stairs to floor ${sel.floor}, then follow the orange path.`
+                : "Follow the orange path from this kiosk.")
+            : "Directions from this kiosk are unavailable."
+        : `Floor ${state.floor} · Tap a room for directions.`;
 
     const people = sel ? K.directory.filter((p) => p.room === sel.id) : [];
-    const detail = sel ? `<div class="detail"><b>Room ${sel.id}</b> · ${sel.name}
+    const detail = people.length ? `<div class="detail map-room-detail">
       ${people.map((p) => `<div class="sub">${p.name}${p.phone ? " · " + p.phone : ""}${p.email ? " · " + p.email : ""}</div>`).join("")}
     </div>` : "";
 
@@ -365,7 +362,7 @@ function renderMap(el) {
       <div class="map-frame-heading">
         <div class="map-frame-title">
           <span class="map-floor-number" aria-hidden="true">${state.floor}</span>
-          <span><strong>Ka Lama Building</strong><small>Floor ${state.floor} · Tap a room for details</small></span>
+          <span><strong>${sel ? `Room ${sel.id} · ${sel.name}` : "Ka Lama Building"}</strong><small>${directions}</small></span>
         </div>
         <div class="map-legend" aria-label="Map key">
           <span><i class="legend-room"></i>Room</span>
@@ -402,8 +399,7 @@ function renderMap(el) {
       <div class="class-status-panel" id="class-status" aria-live="polite"></div>
     </div>
     ${detail}
-    <div class="steps">${stepsText}</div>
-    ${sel ? `<button class="btn" data-route="${sel.id}">How do I get here?</button>` : ""}`;
+    `;
 
     renderClassStatus();
     const searchInput = $("#room-search");
@@ -432,10 +428,7 @@ function renderMap(el) {
     });
 
     const selectRoom = (roomId) => {
-        state.selected = roomId;
-        state.route = null;
-        state.floor = roomById(roomId).floor;
-        renderSection("map", el);
+        showRoute(roomId);
     };
 
     el.onclick = (e) => {

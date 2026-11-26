@@ -1965,6 +1965,104 @@ body.kiosk-active #view svg.map .youlabel {
     font-size: 10px;
 }
 
+body.kiosk-active #view[data-section="map"] {
+    display: flex;
+    height: 100%;
+    min-height: 0;
+    flex-direction: column;
+}
+
+body.kiosk-active #view[data-section="map"] > .page-toolbar {
+    flex: 0 0 auto;
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+}
+
+body.kiosk-active #view .map-search {
+    flex: 0 0 auto;
+    grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr);
+    gap: 6px 16px;
+    margin: 0 auto 6px;
+    padding: 10px 16px;
+}
+
+body.kiosk-active #view .map-search-copy h2 {
+    font-size: 23px;
+}
+
+body.kiosk-active #view .map-search-copy > p:last-child {
+    font-size: 14px;
+}
+
+body.kiosk-active #view .map-search input[type=search] {
+    min-height: 50px;
+    padding: 10px 14px;
+    font-size: 20px;
+}
+
+body.kiosk-active #view .room-results {
+    max-height: 96px;
+    margin-top: 2px;
+}
+
+body.kiosk-active #view .floor-controls {
+    flex: 0 0 auto;
+    margin: 4px auto 8px;
+    padding: 4px;
+}
+
+body.kiosk-active #view .floor-controls .btn {
+    min-width: 130px;
+    min-height: 42px;
+    padding: 8px 14px;
+}
+
+body.kiosk-active #view .mapwrap {
+    flex: 1 1 0;
+    min-height: 180px;
+    height: auto;
+    margin: 0 auto;
+    padding: 10px;
+    gap: 6px;
+}
+
+body.kiosk-active #view .map-frame-heading {
+    min-height: 0;
+    padding: 2px 6px 6px;
+}
+
+body.kiosk-active #view .map-frame-title {
+    min-width: 0;
+    flex: 1 1 auto;
+}
+
+body.kiosk-active #view .map-frame-title strong {
+    font-size: 16px;
+    line-height: 1.2;
+}
+
+body.kiosk-active #view .map-frame-title small {
+    font-size: 13px;
+    line-height: 1.25;
+}
+
+body.kiosk-active #view .map-overview {
+    flex: 0 0 auto;
+    margin: 4px auto 0;
+}
+
+body.kiosk-active #view .map-room-detail {
+    flex: 0 0 auto;
+    margin: 4px auto 0;
+    padding: 6px 12px;
+    font-size: 14px;
+}
+
+body.kiosk-active #view .map-room-detail .sub {
+    font-size: 13px;
+    line-height: 1.25;
+}
+
 body.kiosk-active .class-status-panel {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
